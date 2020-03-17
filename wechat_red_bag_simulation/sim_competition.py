@@ -76,7 +76,7 @@ if __name__ == '__main__':
         data_, _, lucky = data[i]
         # normalize data and lucky
         data_ = normalize(data_)
-        lucky = normalize(lucky)
+        lucky = normalize(lucky, low=0, high=1.0)
         fig, ax = plt.subplots()
         n_players = data_.size
         labels = np.asarray(list(range(n_players)))
