@@ -4,6 +4,8 @@ import seaborn as sns
 
 sns.set(style="whitegrid")
 
+__all__ = ['RedBag']
+
 
 class RedBag:
     def __init__(self, n_bags: int, money: float):
@@ -76,6 +78,8 @@ if __name__ == '__main__':
         sns.barplot(mean_ranks, data_, ax=ax, palette="Blues_d")
         ax.set_xlabel('money rank')
         ax.set_ylabel('money left')
+        ax.tick_params(axis='x', which='major', labelsize=10)
+        plt.xticks(rotation=-90)
         n_players = data_.size
         ax.set_title('competition money w.r.t ranks; {} players'.format(n_players))
         plt.savefig('competition-money-wrt-ranks-{}-players.png'.format(n_players))
