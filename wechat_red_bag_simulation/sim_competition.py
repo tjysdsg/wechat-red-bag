@@ -96,30 +96,33 @@ def sim_trials(n_trials=200, n_players=10, money=66.0):
 if __name__ == '__main__':
     n_trials = 10000
     money = 66.0
-    data1 = [sim_trials(n_trials, np, money) for np in range(3, 22, 3)]
-    data = [sim_player_money(np) for np in range(3, 22, 3)]
+    data1 = [sim_trials(n_trials, np, money) for np in range(3, 25)]
+    data = [sim_player_money(np) for np in range(3, 25)]
     n = len(data)
+    bar_width = 0.38
     for i in range(n):
         fig, ax = plt.subplots()
 
+        data_, _, _ = data[i]
+        n_players = data_.size
+        labels = np.asarray(list(range(n_players)))
+        # normalize
+        data_ = normalize(data_)
+        plt.bar(labels - bar_width / 2, data_, label='Remaining money', color='#a6cee3', width=bar_width)
+
+        # find the number of luckiest
         data1_ = data1[i]
         n_p = len(data1_.order.unique())
         idx = data1_.groupby(['trial'])['money'].transform(max)
         idx = idx == data1_['money']
         lucky = data1_[idx]
         n_lucky = lucky.groupby(['order']).order.count()
-        lucky = pd.DataFrame({'order': n_lucky.index, 'n_lucky': normalize(n_lucky.values, low=0, high=1.0)})
-        sns.barplot(x='order', y='n_lucky', data=lucky, label='Lucky', ax=ax, color="#7ba7b5")
+        # normalize
+        n_lucky = normalize(n_lucky.values, low=0, high=1.0)
+        plt.bar(labels + bar_width / 2, n_lucky, label='Number of luckiest', color="#edd1cb", width=bar_width)
 
-        data_, _, _ = data[i]
-        # normalize data and lucky
-        data_ = normalize(data_)
-        n_players = data_.size
-        labels = np.asarray(list(range(n_players)))
-        sns.barplot(labels, data_, label='Remaining money', color='#e98e95', alpha=0.7)
-
-        ax.set_xlabel('player order')
-        ax.set_ylabel('normalized value')
+        ax.set_xlabel('Player order')
+        ax.set_ylabel('Normalized value')
         ax.set_title('Red bag competition for {} players'.format(n_players))
         ax.set_xticks(labels)
         ax.set_xticklabels([str(i) for i in labels])
@@ -127,16 +130,4 @@ if __name__ == '__main__':
         plt.legend()
         fig.tight_layout()
         plt.savefig('competition-{}-players.png'.format(n_players))
-
-    # for i in range(n):
-    #     data_, ranks, lucky = data[i]
-    #     mean_ranks = np.mean(ranks, axis=1)
-    #     fig, ax = plt.subplots()
-    #     sns.barplot(mean_ranks, data_, ax=ax, palette="Blues_d")
-    #     ax.set_xlabel('money rank')
-    #     ax.set_ylabel('money left')
-    #     ax.tick_params(axis='x', which='major', labelsize=10)
-    #     plt.xticks(rotation=-90)
-    #     n_players = data_.size
-    #     ax.set_title('competition money w.r.t ranks; {} players'.format(n_players))
-    #     plt.savefig('competition-money-wrt-ranks-{}-players.png'.format(n_players))
+        plt.close(fig)
