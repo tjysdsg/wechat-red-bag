@@ -72,6 +72,10 @@ def get_ranks(array: np.ndarray):
     return ranks
 
 
+def normalize(data: np.ndarray, low=-1.0, high=1.0) -> np.ndarray:
+    return low + (high - low) * (data - np.min(data)) / np.ptp(data)
+
+
 def sim_trial1(n_players: int, money: float, trial_i: int):
     """
     :return: [order, money, trial]
@@ -99,45 +103,33 @@ if __name__ == '__main__':
     n = len(data)
     bar_width = 0.38
     for i in range(n):
-        # fig, (ax, lax) = plt.subplots(ncols=2, gridspec_kw={"width_ratios": [4, 1]})
         fig, ax = plt.subplots()
 
         data_, _, _ = data[i]
         n_players = data_.size
         labels = np.asarray(list(range(n_players)))
-
-        # color = '#a6cee3'
-        sns.barplot(labels, data_, label='Remaining money', palette='Blues_d', ax=ax)
-        ax.set_ylabel("Remaining money")
+        # normalize
+        data_ = normalize(data_)
+        plt.bar(labels - bar_width / 2, data_, label='Remaining money', color='#a6cee3', width=bar_width)
 
         # find the number of luckiest
-        # data1_ = data1[i]
-        # n_p = len(data1_.order.unique())
-        # idx = data1_.groupby(['trial'])['money'].transform(max)
-        # idx = idx == data1_['money']
-        # lucky = data1_[idx]
-        # n_lucky = lucky.groupby(['order']).order.count()
+        data1_ = data1[i]
+        n_p = len(data1_.order.unique())
+        idx = data1_.groupby(['trial'])['money'].transform(max)
+        idx = idx == data1_['money']
+        lucky = data1_[idx]
+        n_lucky = lucky.groupby(['order']).order.count()
+        # normalize
+        n_lucky = normalize(n_lucky.values, low=0, high=1.0)
+        plt.bar(labels + bar_width / 2, n_lucky, label='Number of luckiest', color="#edd1cb", width=bar_width)
 
-        # instantiate a second axes that shares the same x-axis
-        # ax1 = ax.twinx()
-        # color = '#edd1cb'
-        # ax1.bar(labels + bar_width / 2, n_lucky, label='Number of luckiest', color=color, width=bar_width)
-        # ax1.tick_params(axis='y', labelcolor=color)
-        # ax1.set_ylabel('Number of luckiest')
-
-        # # align two axis
-        # ax1.set_yticks(np.linspace(ax1.get_yticks()[0], ax1.get_yticks()[-1], len(ax.get_yticks())))
-
-        # # show legend in a dedicated axis
-        # fig.legend(bbox_to_anchor=(0, 0, 1, 1), bbox_transform=lax.transAxes)
-        # lax.axis('off')
-
-        # configure x axis
         ax.set_xlabel('Player order')
+        ax.set_ylabel('Normalized value')
         ax.set_title('Red bag competition for {} players'.format(n_players))
         ax.set_xticks(labels)
         ax.set_xticklabels([str(i) for i in labels])
         ax.tick_params(axis='x', which='major', labelsize=10)
+        plt.legend()
         fig.tight_layout()
         plt.savefig('competition-{}-players.png'.format(n_players))
         plt.close(fig)
